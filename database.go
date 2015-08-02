@@ -16,7 +16,7 @@ func db_create(){
   }
   defer db.Close()
 
-  sqlStmt := `
+  sqlStmt_files := `
   CREATE TABLE IF NOT EXISTS files(
     id INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE,
     identifier INTEGER,
@@ -24,10 +24,19 @@ func db_create(){
     hfn TEXT,
     host TEXT
     )`
-  _, err = db.Exec(sqlStmt)
+  _, err = db.Exec(sqlStmt_files)
   if err != nil {
     log.Fatal(err)
   }
+	sqlStmt_infos := `
+	CREATE TABLE IF NOT EXISTS infos(
+		id INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE,
+		password TEXT
+		)`
+	_, err = db.Exec(sqlStmt_infos)
+	if err != nil{
+		log.Fatal(err)
+	}
 }
 
 func db_list_files() (ids []int, names []string){
@@ -77,4 +86,21 @@ func db_available_identifier(identifier string) (bool){
   }else{
     return true
   }
+}
+func db_insert_password(password string){
+	usr, err := user.Current()
+  if err != nil{log.Fatal(err)}
+
+  db, err := sql.Open("sqlite3", usr.HomeDir+"/.exablock/exablock.db")
+  if err != nil {log.Fatal(err)}
+  defer db.Close()
+
+
+	stmt, err := db.Prepare("INSERT INTO infos(password) VALUES(?)")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer stmt.Close()
+	var id int
+	err = stmt.QueryRow(password).Scan(&id)
 }

@@ -69,3 +69,12 @@ func display_choice(question string, choices []string) (string){
   }
   return choice
 }
+
+
+
+func display_get_pass(str string) (string){
+  var password string
+  fmt.Printf(str)
+  fmt.Scanf("%s", &password)
+  return password
+}

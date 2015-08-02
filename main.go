@@ -6,16 +6,18 @@ import (
 	"os/user"
 	"path"
 	"github.com/yookoala/realpath"
-	"io/ioutil"
 )
 
 
 func check_config_directory(){
 	usr, _ := user.Current()
-	if _, err := os.Stat("/path/to/whatever"); os.IsNotExist(err) {
+	if _, err := os.Stat(usr.HomeDir+"/.exablock/"); os.IsNotExist(err) {
 		os.Mkdir(usr.HomeDir+"/.exablock", 0777)
 		os.Mkdir(usr.HomeDir+"/.exablock/files", 0777)
 		db_create()
+		var password string = display_get_pass("Enter a password (remember it, it will encrypt your files) : ")
+		var hashed_password string = make_hash(password)
+		db_insert_password(hashed_password)
 	}
 }
 
@@ -27,24 +29,6 @@ func send_file(filename string){
 	var host string = "local.dev"
 	encrypt_file(realpath, hfn)
 	fmt.Println(host, identifier)
-}
-
-func change_password(){
-	var choice string = display_choice("Do you want change your password ? (y/n)", []string {"y", "n"})
-	if choice == "n"{os.Exit(0)}else{
-		var choice string = display_choice("Do you want to auto generate a passphrase or write one ? (generate/write)", []string {"generate", "write"})
-		if choice == "generate"{
-			var password string = generate_passphrase()
-			d := []byte(password)
-			usr, _ := user.Current()
-			err := ioutil.WriteFile(usr.HomeDir+"/.exablock/password.txt", d, 0777)
-			if err != nil{
-				fmt.Println(err)
-			}
-		}else{
-
-		}
-	}
 }
 
 func main(){
@@ -61,8 +45,6 @@ func main(){
         display_version()
       case "list":
         display_list_files()
-			case "password":
-				change_password()
 			case "send":
 				if len(os.Args) == 3{
 					send_file(os.Args[2])
